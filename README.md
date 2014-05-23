@@ -16,16 +16,21 @@ Setup
    
 2) DB settings
    edit the database section in the file `timebook/settings.py`
-   DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'database name',
-        'USER': 'user name',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': 5432
-    }
-}
+   
+      ```DATABASES = {
+         'default': {
+         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+         'NAME': 'database name',
+         'USER': 'user name',
+         'PASSWORD': 'password',
+         'HOST': 'localhost',
+         'PORT': 5432
+         }
+      }```
+
 
 3) Set up database according to model
     `./manage.py syncdb`
+    
+4) To run
+    `./manage.py runserver`
