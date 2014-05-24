@@ -26,6 +26,10 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
+REST_FRAMEWORK = {
+    'PAGINATE_BY': 25,
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
+}
 
 # Application definition
 
@@ -64,10 +68,9 @@ DATABASES = {
         'NAME': 'dbname',
         'USER': 'username',
         'PASSWORD': 'password',
-        'HOST': 'server',
-        'PORT': 0
+        'HOST': 'host',
+        'PORT': 5432
     }
-
 }
 
 # Internationalization

@@ -1,91 +1,110 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
 from timebook.models import *
 from timebook.serializers import *
+from rest_framework import generics
+from rest_framework import permissions
+from timebook.permissions import IsOwnerOrAdmin
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
 
-class JSONResponse(HttpResponse):
-        def __init__(self, data, **kwargs):
-                content = JSONRenderer().render(data)
-                kwargs['content_type'] = 'application/json'
-                super(JSONResponse, self).__init__(content, **kwargs)
+class CustomerList(generics.ListCreateAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def customer_list(request):
-        customers = Customer.objects.all()
-        serialized = CustomerSerializer(customers, many=True)
-        return JSONResponse(serialized.data)
+class CustomerDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def customer_detail(request, pk):
-        try:
-            customer = Customer.objects.get(pk=pk)
-
-        except Customer.DoesNotExist:
-            return HttpResponse(status=404)
-
-        serialized = CustomerSerializer(customer)
-        return JSONResponse(serialized.data)
+class WorkerList(generics.ListCreateAPIView):
+    queryset = Worker.objects.all()
+    serializer_class = WorkerSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def worker_list(request):
-        workers = Worker.objects.all()
-        serialized = WorkerSerializer(workers, many=True)
-        return JSONResponse(serialized.data)
+class WorkerDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Worker.objects.all()
+    serializer_class = WorkerSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def worker_detail(request, pk):
-        try:
-            worker = Worker.objects.get(pk=pk)
-        except Worker.DoesNotExist:
-            return HttpResponse(status=404)
-        serialized = WorkerSerializer(worker)
-        return JSONResponse(serialized.data)
+class TimeTypeList(generics.ListCreateAPIView):
+    queryset = TimeType.objects.all()
+    serializer_class = TimeTypeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def job_list(request):
-        jobs = Job.objects.all()
-        serialized = JobSerializer(jobs, many=True)
-        return JSONResponse(serialized.data)
+class TimeTypeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = TimeType.objects.all()
+    serializer_class = TimeTypeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def job_detail(request, pk):
-        try:
-            job = Job.objects.get(pk=pk)
-        except Job.DoesNotExist:
-            return HttpResponse(status=404)
-        serialized = JobSerializer(job)
-        return JSONResponse(serialized.data)
+class TimeList(generics.ListCreateAPIView):
+    queryset = Time.objects.all()
+    serializer_class = TimeSerializer
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrAdmin,)
+    filter_fields = ('worker', 'job', 'type', 'date')
+
+    def pre_save(self, obj):
+        obj.worker = Worker.objects.get(user=self.request.user)
 
 
-def timetype_list(request):
-        timetypes = TimeType.objects.all()
-        serialized = TimeTypeSerializer(timetypes, many=True)
-        return JSONResponse(serialized.data)
+class TimeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Time.objects.all()
+    serializer_class = TimeSerializer
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrAdmin,)
 
 
-def timetype_detail(request, pk):
-        try:
-            timetype = TimeType.objects.get(pk=pk)
-        except TimeType.DoesNotExist:
-            return HttpResponse(status=404)
-        serialized = TimeTypeSerializer(timetype)
-        return JSONResponse(serialized.data)
+class JobList(generics.ListCreateAPIView):
+    queryset = Job.objects.all()
+    serializer_class = JobSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def time_list(request):
-        times = Time.objects.all()
-        serialized = TimeSerializer(times, many=True)
-        return JSONResponse(serialized.data)
+class JobDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Job.objects.all()
+    serializer_class = JobSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
-def time_detail(request, pk):
-        try:
-            time = Time.objects.get(pk=pk)
-        except Time.DoesNotExist:
-            return HttpResponse(status=404)
-        serialized = TimeSerializer(time)
-        return JSONResponse(serialized.data)
+class WorkedOnList(generics.ListAPIView):
+    model = Time
+    serializer_class = TimeSerializer
+
+    def get_queryset(self):
+        queryset = super(WorkedOnList, self).get_queryset()
+        return queryset.filter(worker=self.kwargs.get('pk'))
+
+
+class TimeOnJobList(generics.ListAPIView):
+    model = Time
+    serializer_class = TimeSerializer
+
+    def get_queryset(self):
+        queryset = super(TimeOnJobList, self).get_queryset()
+        return queryset.filter(job=self.kwargs.get('pk'))
+
+
+class JobsOnCustomerList(generics.ListAPIView):
+    model = Job
+    serializer_class = JobSerializer
+
+    def get_queryset(self):
+        queryset = super(JobsOnCustomerList, self).get_queryset()
+        return queryset.filter(customer=self.kwargs.get('pk'))
+
+
+@api_view(('GET',))
+def api_root(request, format=None):
+    return Response({
+        'customer': reverse('customer-list', request=request, format=format),
+        'job': reverse('job-list', request=request, format=format),
+        'time': reverse('time-list', request=request, format=format),
+        'timetype': reverse('timetype-list', request=request, format=format),
+        'worker': reverse('worker-list', request=request, format=format)
+    })
