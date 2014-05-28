@@ -23,8 +23,7 @@ class JobSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class TimeTypeSerializer(serializers.HyperlinkedModelSerializer):
-    times = serializers.HyperlinkedRelatedField(many=True,
-                                                view_name='time-detail')
+    times = serializers.HyperlinkedIdentityField(view_name='timeoftype-list')
 
     class Meta:
             model = TimeType
@@ -42,7 +41,7 @@ class WorkerSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class TimeSerializer(serializers.HyperlinkedModelSerializer):
-    worker = WorkerSerializer()
+    #worker = WorkerSerializer()
     #job = serializers.HyperlinkedRelatedField(view_name='job-detail')
     #type = serializers.HyperlinkedRelatedField(view_name='timetype-detail')
 

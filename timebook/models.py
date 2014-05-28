@@ -11,11 +11,29 @@ class Customer(models.Model):
         phone = models.CharField(max_length=50)
         address = models.CharField(max_length=200)
 
+        def __str__(self):
+            return "{0}".format(self.name)
+
+        class Meta:
+            ordering = ['id']
+
 
 class Job(models.Model):
         description = models.CharField(max_length=500)
         order_number = models.PositiveIntegerField(unique=True)
         customer = models.ForeignKey('Customer', related_name='jobs')
+
+        def __str__(self):
+            if len(self.description) > 20:
+                desc = self.description[0:20]
+            else:
+                desc = self.description
+
+            return "{0} - {1} - {2}".format(self.order_number, self.customer,
+                                            desc)
+
+        class Meta:
+            ordering = ['order_number']
 
 
 class TimeType(models.Model):
@@ -31,6 +49,12 @@ class TimeType(models.Model):
                                                 MinValueValidator(
                                                     Decimal('0.00'))])
 
+        def __str__(self):
+            return "{0}".format(self.description)
+
+        class Meta:
+            ordering = ['id']
+
 
 class Worker(models.Model):
         user = models.OneToOneField(User, unique=True)
@@ -41,6 +65,9 @@ class Worker(models.Model):
 
         def __str__(self):
             return "{0} {1}".format(self.first_name, self.last_name)
+
+        class Meta:
+            ordering = ['id']
 
 
 class Time(models.Model):
@@ -53,3 +80,11 @@ class Time(models.Model):
         worker = models.ForeignKey('Worker', related_name='times')
         type = models.ForeignKey('TimeType', related_name='times')
         job = models.ForeignKey('Job', related_name='times')
+
+        def __str__(self):
+            return "{0} - {1}- {2} - {3}".format(self.date,
+                                                 self.job.order_number,
+                                                 self.worker, self.hours)
+
+        class Meta:
+            ordering = ['date']

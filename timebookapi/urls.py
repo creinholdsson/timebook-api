@@ -8,7 +8,7 @@ urlpatterns = patterns('',
                        # url(r'^$', 'timebookapi.views.home', name='home'),
                        # url(r'^blog/', include('blog.urls')),
                        url(r'^admin/', include(admin.site.urls)),
-                       url(r'^', include('timebook.urls'))
+                       url(r'^api/v1/', include('timebook.urls'))
                        )
 urlpatterns += patterns('',
                         url(r'^api-auth/', include('rest_framework.urls',

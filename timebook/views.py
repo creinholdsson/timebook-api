@@ -6,6 +6,8 @@ from timebook.permissions import IsOwnerOrAdmin
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from timebook.filters import *
+import django_filters
 
 
 class CustomerList(generics.ListCreateAPIView):
@@ -45,10 +47,15 @@ class TimeTypeDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TimeList(generics.ListCreateAPIView):
+    """
+    Returns a list of all the times added, sorted by date added.
+    Filtering is enabled for **worker**, **job**, **date**, **min_date**
+    (including) and **max_date** (including).
+    """
     queryset = Time.objects.all()
     serializer_class = TimeSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwnerOrAdmin,)
-    filter_fields = ('worker', 'job', 'type', 'date')
+    filter_class = TimeFilter
 
     def pre_save(self, obj):
         obj.worker = Worker.objects.get(user=self.request.user)
@@ -75,6 +82,7 @@ class JobDetail(generics.RetrieveUpdateDestroyAPIView):
 class WorkedOnList(generics.ListAPIView):
     model = Time
     serializer_class = TimeSerializer
+    filter_class = TimeFilter
 
     def get_queryset(self):
         queryset = super(WorkedOnList, self).get_queryset()
@@ -84,10 +92,21 @@ class WorkedOnList(generics.ListAPIView):
 class TimeOnJobList(generics.ListAPIView):
     model = Time
     serializer_class = TimeSerializer
+    filter_class = TimeFilter
 
     def get_queryset(self):
         queryset = super(TimeOnJobList, self).get_queryset()
         return queryset.filter(job=self.kwargs.get('pk'))
+
+
+class TimeOfTypeList(generics.ListAPIView):
+    model = Time
+    serializer_class = TimeSerializer
+    filter_class = TimeFilter
+
+    def get_queryset(self):
+        queryset = super(TimeOfTypeList, self).get_queryset()
+        return queryset.filter(type=self.kwargs.get('pk'))
 
 
 class JobsOnCustomerList(generics.ListAPIView):
