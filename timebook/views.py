@@ -54,11 +54,18 @@ class TimeList(generics.ListCreateAPIView):
     """
     queryset = Time.objects.all()
     serializer_class = TimeSerializer
-    permission_classes = (permissions.IsAuthenticated, IsOwnerOrAdmin,)
+    permission_classes = (IsOwnerOrAdmin, permissions.IsAuthenticated, )
     filter_class = TimeFilter
 
     def pre_save(self, obj):
         obj.worker = Worker.objects.get(user=self.request.user)
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Time.objects.all()
+        else:
+            return Time.objects.filter(worker=Worker.objects.get(
+                user=self.request.user))
 
 
 class TimeDetail(generics.RetrieveUpdateDestroyAPIView):
